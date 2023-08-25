@@ -491,7 +491,7 @@
 		console-size = <0x40000>;
 		ftrace-size = <0x10000>;
 		pmsg-size = <0x40000>;
-		cc-size = <0x0>;
+		ecc-size = <16>;
 	};
 
 	cmdline_region: cmdline_region@ffd00000 {
