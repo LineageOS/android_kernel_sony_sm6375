@@ -1289,24 +1289,12 @@ int sec_ts_get_power_status(void *data)
 {
 	struct sec_ts_data *ts = (struct sec_ts_data *)data;
 	const struct sec_ts_plat_data *pdata = ts->plat_data;
-	struct regulator *regulator_dvdd = NULL;
 	int ret = 0;
 
-	regulator_dvdd = regulator_get(NULL, pdata->regulator_dvdd);
-	if (IS_ERR_OR_NULL(regulator_dvdd)) {
-		input_err(true, &ts->client->dev, "%s: Failed to get %s regulator.\n",
-				__func__, pdata->regulator_dvdd);
-		ret = PTR_ERR(regulator_dvdd);
-		goto error;
-	}
+	ret = regulator_is_enabled(pdata->regulator_dvdd);
 
-	input_err(true, &ts->client->dev, "%s:  dvdd:%s\n", __func__,
-			regulator_is_enabled(regulator_dvdd) ? "on" : "off");
-
-	ret = regulator_is_enabled(regulator_dvdd) ? 0 : 1;
-
-error:
-	regulator_put(regulator_dvdd);
+	input_err(true, &ts->client->dev, "%s: dvdd: %s\n", __func__,
+			ret ? "on" : "off");
 
 	return ret;
 }
@@ -1315,7 +1303,6 @@ int sec_ts_power(void *data, bool on)
 {
 	struct sec_ts_data *ts = (struct sec_ts_data *)data;
 	const struct sec_ts_plat_data *pdata = ts->plat_data;
-	struct regulator *regulator_dvdd = NULL;
 	static bool enabled;
 	int ret = 0;
 
@@ -1324,16 +1311,8 @@ int sec_ts_power(void *data, bool on)
 		return ret;
 	}
 
-	regulator_dvdd = regulator_get(NULL, pdata->regulator_dvdd);
-	if (IS_ERR_OR_NULL(regulator_dvdd)) {
-		input_err(true, &ts->client->dev, "%s: Failed to get %s regulator.\n",
-				__func__, pdata->regulator_dvdd);
-		ret = PTR_ERR(regulator_dvdd);
-		goto error;
-	}
-
 	if (on) {
-		ret = regulator_enable(regulator_dvdd);
+		ret = regulator_enable(pdata->regulator_dvdd);
 		if (ret) {
 			input_err(true, &ts->client->dev, "%s: Failed to enable dvdd: %d\n", __func__, ret);
 			goto out;
@@ -1354,18 +1333,16 @@ int sec_ts_power(void *data, bool on)
                 }
 
 		sec_ts_delay(4);
-		regulator_disable(regulator_dvdd);
+		ret = regulator_disable(pdata->regulator_dvdd);
+		if (ret)
+			input_err(true, &ts->client->dev, "%s: Failed to disable dvdd: %d\n", ret);
 		gpio_set_value(pdata->reset_gpio, 0);
 	}
 
 	enabled = on;
 
 out:
-	input_err(true, &ts->client->dev, "%s: %s: dvdd:%s\n", __func__, on ? "on" : "off",
-			regulator_is_enabled(regulator_dvdd) ? "on" : "off");
-
-error:
-	regulator_put(regulator_dvdd);
+	input_err(true, &ts->client->dev, "%s: %s\n", __func__, on ? "on" : "off");
 
 	return ret;
 }
@@ -1508,7 +1485,7 @@ static int sec_ts_parse_dt(struct i2c_client * client)
 	if (of_property_read_string_index(np, "sec,project_name", 1, &pdata->model_name))
 		input_err(true, &client->dev, "%s: skipped to get model_name property\n", __func__);
 
-	if (of_property_read_string(np, "sec,regulator_dvdd", &pdata->regulator_dvdd)) {
+	if (of_property_read_string(np, "sec,regulator_dvdd", &pdata->dvdd_name)) {
 		input_err(true, dev, "%s: Failed to get regulator_dvdd name property\n", __func__);
 		return -EINVAL;
 	}
@@ -1901,6 +1878,15 @@ static int sec_ts_probe(struct i2c_client *client, const struct i2c_device_id *i
 
 	sec_ts_pinctrl_configure(ts, true);
 
+	/* regulator get */
+	pdata->regulator_dvdd = devm_regulator_get(&client->dev, pdata->dvdd_name);
+	if (IS_ERR_OR_NULL(pdata->regulator_dvdd)) {
+		input_err(true, &ts->client->dev, "%s: Failed to get %s regulator.\n",
+				__func__, pdata->dvdd_name);
+		ret = PTR_ERR(pdata->regulator_dvdd);
+		goto err_init;
+	}
+
 	/* power enable */
 	sec_ts_power(ts, true);
 	if (!pdata->regulator_boot_on)
@@ -2031,7 +2017,7 @@ static int sec_ts_probe(struct i2c_client *client, const struct i2c_device_id *i
 
 	input_info(true, &ts->client->dev, "%s: request_irq = %d\n", __func__, client->irq);
 
-	ret = request_threaded_irq(client->irq, NULL, sec_ts_irq_thread,
+	ret = devm_request_threaded_irq(&client->dev, client->irq, NULL, sec_ts_irq_thread,
 			ts->plat_data->irq_type, SEC_TS_I2C_NAME, ts);
 	if (ret < 0) {
 		input_err(true, &ts->client->dev, "%s: Unable to request threaded irq\n", __func__);
@@ -2085,7 +2071,6 @@ static int sec_ts_probe(struct i2c_client *client, const struct i2c_device_id *i
 	/* need to be enabled when new goto statement is added */
 #if 0
 	sec_ts_fn_remove(ts);
-	free_irq(client->irq, ts);
 #endif
 
 err_irq:
@@ -2511,7 +2496,6 @@ static int sec_ts_remove(struct i2c_client *client)
 	flush_delayed_work(&ts->work_read_info);
 
 	sec_ts_set_irq(ts, false);
-	free_irq(ts->client->irq, ts);
 	input_info(true, &ts->client->dev, "%s: irq disabled\n", __func__);
 
 #ifdef USE_POWER_RESET_WORK
