@@ -765,7 +765,6 @@ struct sec_ts_plat_data {
 	const char *model_name;
 	const char *project_name;
 	const char *regulator_dvdd;
-	const char *regulator_avdd;
 
 	u32 panel_revision;
 	u8 core_version_of_ic[4];

@@ -1316,7 +1316,6 @@ int sec_ts_power(void *data, bool on)
 	struct sec_ts_data *ts = (struct sec_ts_data *)data;
 	const struct sec_ts_plat_data *pdata = ts->plat_data;
 	struct regulator *regulator_dvdd = NULL;
-	//struct regulator *regulator_avdd = NULL;
 	static bool enabled;
 	int ret = 0;
 
@@ -1333,14 +1332,6 @@ int sec_ts_power(void *data, bool on)
 		goto error;
 	}
 
-	//regulator_avdd = regulator_get(NULL, pdata->regulator_avdd);
-	/*if (IS_ERR_OR_NULL(regulator_avdd)) {
-		input_err(true, &ts->client->dev, "%s: Failed to get %s regulator.\n",
-				__func__, pdata->regulator_avdd);
-		ret = PTR_ERR(regulator_avdd);
-		goto error;
-	}*/
-
 	if (on) {
 		ret = regulator_enable(regulator_dvdd);
 		if (ret) {
@@ -1352,14 +1343,7 @@ int sec_ts_power(void *data, bool on)
 		gpio_set_value(pdata->reset_gpio, 0);
 		sec_ts_delay(1);
 		gpio_set_value(pdata->reset_gpio, 1);
-
-		// ret = regulator_enable(regulator_avdd);
-		// if (ret) {
-		// 	input_err(true, &ts->client->dev, "%s: Failed to enable vdd: %d\n", __func__, ret);
-		// 	goto out;
-		// }
 	} else {
-		// regulator_disable(regulator_avdd);
                 printk("sec_ts: get_stage_adc_mb = %s\n", get_stage_adc_mb());
 
                 if(strstr(get_stage_adc_mb(),"EVT")) {
@@ -1382,7 +1366,6 @@ out:
 
 error:
 	regulator_put(regulator_dvdd);
-	//regulator_put(regulator_avdd);
 
 	return ret;
 }
@@ -1529,11 +1512,6 @@ static int sec_ts_parse_dt(struct i2c_client * client)
 		input_err(true, dev, "%s: Failed to get regulator_dvdd name property\n", __func__);
 		return -EINVAL;
 	}
-
-	/*if (of_property_read_string(np, "sec,regulator_avdd", &pdata->regulator_avdd)) {
-		input_err(true, dev, "%s: Failed to get regulator_avdd name property\n", __func__);
-		return -EINVAL;
-	}*/
 
 	if (of_property_read_u32_array(np, "sec,rejection_area_portrait", rejection_buff, SEC_TS_GRIP_REJECTION_BORDER_NUM))
 		input_err(true, dev, "%s: grip rejection not supported\n", __func__);
