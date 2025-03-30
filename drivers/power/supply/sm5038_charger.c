@@ -1705,8 +1705,8 @@ static int sm5038_chg_get_property(struct power_supply *psy,
 		break;
 	/* ================= fuel gague ========================= */
 	case POWER_SUPPLY_PROP_TECHNOLOGY:
-		val->intval = POWER_SUPPLY_TECHNOLOGY_LION;
-/*		pr_info("%s POWER_SUPPLY_TECHNOLOGY_LION is %d \n", temp_buf, val->intval);	*/
+		val->intval = POWER_SUPPLY_TECHNOLOGY_LIPO;
+/*		pr_info("%s POWER_SUPPLY_TECHNOLOGY_LIPO is %d \n", temp_buf, val->intval);	*/
 		break;
 	case POWER_SUPPLY_PROP_CYCLE_COUNT:
 		val->intval = sm5038_fg_get_prop_cycle();
