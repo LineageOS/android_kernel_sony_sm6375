@@ -16,6 +16,23 @@
       "message": "originally comes from https://github.com/sonyxperiadev/kernel/commit/0b0406dde3e40d174834d6fa65de5d2bcf1f745d, but I discarded some unnecessary code style changes",
       "revId": "39fc330cd17435d39b60ffa26375013f2c3ccc2a",
       "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b9cf74da_0ff88e10",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 29578
+      },
+      "writtenOn": "2025-03-31T07:40:10Z",
+      "side": 1,
+      "message": "Looks good to me!",
+      "revId": "39fc330cd17435d39b60ffa26375013f2c3ccc2a",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
     }
   ]
 }
