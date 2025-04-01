@@ -75,8 +75,6 @@ static ssize_t log_interval_store(struct class *c,
 	struct somc_bmdbg_dev *bmdbg_dev = container_of(c,
 					struct somc_bmdbg_dev, bmdbg_class);
 
-	kstrtoint(buf, 10, &bmdbg_dev->bmlog_timer);
-
 	cancel_delayed_work_sync(&bmdbg_dev->somc_bmdbg_log_request_work);
 	if (bmdbg_dev->bmlog_timer > 0)
 		schedule_delayed_work(&bmdbg_dev->somc_bmdbg_log_request_work,
@@ -101,8 +99,6 @@ static ssize_t log_categories_store(struct class *c,
 	struct somc_bmdbg_dev *bmdbg_dev = container_of(c,
 					struct somc_bmdbg_dev, bmdbg_class);
 
-	kstrtou64(buf, 0, &bmdbg_dev->bmlog_categories);
-
 	somc_set_bmlog_prop(bmdbg_dev);
 
 	return count;
@@ -122,8 +118,6 @@ static ssize_t log_level_store(struct class *c, struct class_attribute *attr,
 {
 	struct somc_bmdbg_dev *bmdbg_dev = container_of(c,
 					struct somc_bmdbg_dev, bmdbg_class);
-
-	kstrtou32(buf, 0, &bmdbg_dev->bmlog_level);
 
 	somc_set_bmlog_prop(bmdbg_dev);
 
@@ -267,8 +261,6 @@ static ssize_t regupdate_interval_store(struct class *c,
 {
 	struct somc_bmdbg_dev *bmdbg_dev = container_of(c,
 					struct somc_bmdbg_dev, bmdbg_class);
-
-	kstrtoint(buf, 10, &bmdbg_dev->regupdate_timer);
 
 	cancel_delayed_work_sync(&bmdbg_dev->somc_bmdbg_reg_read_request_work);
 	if (bmdbg_dev->regupdate_timer > 0)
