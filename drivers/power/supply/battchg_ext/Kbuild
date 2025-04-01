@@ -3,4 +3,4 @@ MODULE_NAME = somc_battchg_ext
 obj-m := $(MODULE_NAME).o
 
 $(MODULE_NAME)-objs := somc_battchg_ext_main.o
-$(MODULE_NAME)-objs += pmic-voter.o
+$(MODULE_NAME)-objs += ../qcom/pmic-voter.o
