@@ -1,3 +1,7 @@
+&qcom {
+	status = "disabled";
+};
+
 &soc {
     last_logs@ffbc0000 {
 		compatible = "rd_last_logs";
