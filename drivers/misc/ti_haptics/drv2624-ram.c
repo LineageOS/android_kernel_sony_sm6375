@@ -2468,7 +2468,7 @@ static int drv2624_probe(struct i2c_client *client,
 	}
 	drv2624_init(pDRV2624);
 
-	pDRV2624->led_dev.name = "drv26xx_haptic";
+	pDRV2624->led_dev.name = "vibrator";
     pDRV2624->led_dev.brightness_set = drv2624_vibrator_enable;
     pDRV2624->led_dev.groups = drv2624_led_dev_fs_attr_groups;
 	nResult = devm_led_classdev_register(&pDRV2624->client->dev, &pDRV2624->led_dev);
