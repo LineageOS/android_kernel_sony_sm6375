@@ -5,6 +5,10 @@
         };
 };
 
+&smb1394 {
+	status = "disabled";
+};
+
 &pm7250b_charger {
 	qcom,fv-max-uv = <4480000>;
  	qcom,chg-term-src = <1>;
