@@ -392,11 +392,7 @@
 
 				config {
 					pins = "gpio19", "gpio20";
-#if defined(CONFIG_ARCH_SONY_ZAMBEZI)
-					drive-strength = <0>;
-#else
 					drive-strength = <2>;
-#endif
 					bias-disable;
 				};
 			};
