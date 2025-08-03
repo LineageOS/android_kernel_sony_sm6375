@@ -3923,6 +3923,36 @@ static void smb5_somc_remove_sysfs_entries(struct device *dev)
 		device_remove_file(dev, &smb5_somc_attrs[i]);
 }
 
+static ssize_t smart_charging_interruption_store(struct class *class,
+				struct class_attribute *attr, const char *buf, size_t count)
+{
+	struct smb_charger *chg = container_of(class, struct smb_charger, bcext_class);
+	int val = 0;
+
+	if (kstrtoint(buf, 10, &val))
+		return -EINVAL;
+
+	smb5_iio_set_prop(chg, PSY_IIO_SMART_CHARGING_INTERRUPTION, val);
+
+	return count;
+}
+static ssize_t smart_charging_interruption_show(struct class *class,
+				struct class_attribute *attr, char *buf)
+{
+	struct smb_charger *chg = container_of(class, struct smb_charger, bcext_class);
+	int val = 0;
+
+	smb5_iio_get_prop(chg, PSY_IIO_SMART_CHARGING_INTERRUPTION, &val);
+
+	return scnprintf(buf, PAGE_SIZE, "%d\n", 0);
+}
+static CLASS_ATTR_RW(smart_charging_interruption);
+
+static struct attribute *somc_bcext_class_attrs[] = {
+	&class_attr_smart_charging_interruption.attr,
+};
+ATTRIBUTE_GROUPS(somc_bcext_class);
+
 #endif
 static int smb5_probe(struct platform_device *pdev)
 {
@@ -4115,6 +4145,13 @@ static int smb5_probe(struct platform_device *pdev)
 		goto free_irq;
 	}
 
+	chg->bcext_class.name = "battchg_ext";
+	chg->bcext_class.class_groups = somc_bcext_class_groups;
+	rc = class_register(&chg->bcext_class);
+	if (rc < 0) {
+		pr_err("Couldn't create bcext_class rc=%d\n", rc);
+		goto class_register;
+	}
 #endif
 	rc = sysfs_create_groups(&chg->dev->kobj, smb5_groups);
 	if (rc < 0) {
@@ -4134,6 +4171,8 @@ static int smb5_probe(struct platform_device *pdev)
 
 	return rc;
 
+class_register:
+	class_unregister(&chg->bcext_class);
 free_irq:
 	smb5_free_interrupts(chg);
 cleanup:
@@ -4149,6 +4188,7 @@ static int smb5_remove(struct platform_device *pdev)
 	struct smb_charger *chg = &chip->chg;
 #if defined(CONFIG_SOMC_CHARGER_EXTENSION)
 	smb5_somc_remove_sysfs_entries(chg->dev);
+	class_unregister(&chg->bcext_class);
 #endif
 	/* force enable APSD */
 	smblib_masked_write(chg, USBIN_OPTIONS_1_CFG_REG,
