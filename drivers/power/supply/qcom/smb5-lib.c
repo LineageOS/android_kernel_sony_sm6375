@@ -3839,7 +3839,11 @@ int smblib_get_prop_usb_voltage_max_design(struct smb_charger *chg,
 		if (chg->chg_param.smb_version == PMI632)
 			val->intval = MICRO_9V;
 		else
+#if defined(CONFIG_ARCH_SONY_MURRAY)
+			val->intval = MICRO_12V;
+#else
 			val->intval = MICRO_9V;
+#endif
 		break;
 	default:
 		val->intval = MICRO_5V;
@@ -4756,17 +4760,13 @@ static int get_rp_based_dcp_current(struct smb_charger *chg, int typec_mode)
 	case QTI_POWER_SUPPLY_TYPEC_SOURCE_HIGH:
 		rp_ua = TYPEC_HIGH_CURRENT_UA;
 		break;
-#if 0
-		case QTI_POWER_SUPPLY_TYPEC_SOURCE_MEDIUM:
-		case QTI_POWER_SUPPLY_TYPEC_SOURCE_DEFAULT:
-#endif
-/* Modify[HQ]:Default Float current 1.5A -> 0.5A */
+#if defined(CONFIG_ARCH_SONY_ZAMBEZI)
 	case QTI_POWER_SUPPLY_TYPEC_SOURCE_DEFAULT:
 	case QTI_POWER_SUPPLY_TYPEC_NONE:
 		rp_ua = SDP_CURRENT_UA;
 		break;
+#endif
 	case QTI_POWER_SUPPLY_TYPEC_SOURCE_MEDIUM:
-/* end */
 	/* fall through */
 	default:
 		rp_ua = DCP_CURRENT_UA;
@@ -4786,7 +4786,11 @@ int smblib_set_prop_pd_current_max(struct smb_charger *chg,
 
 	if (chg->pd_active) {
 		icl = get_client_vote(chg->usb_icl_votable, PD_VOTER);
+#if defined(CONFIG_ARCH_SONY_ZAMBEZI)
 		rc = vote(chg->usb_icl_votable, PD_VOTER, true, val);
+#else
+		rc = vote(chg->usb_icl_votable, PD_VOTER, true, 3300000);
+#endif
 		if (val != icl)
 			power_supply_changed(chg->usb_psy);
 	} else {
