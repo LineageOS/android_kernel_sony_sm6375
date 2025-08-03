@@ -3839,7 +3839,11 @@ int smblib_get_prop_usb_voltage_max_design(struct smb_charger *chg,
 		if (chg->chg_param.smb_version == PMI632)
 			val->intval = MICRO_9V;
 		else
+#if !defined(CONFIG_ARCH_SONY_MURRAY)
 			val->intval = MICRO_9V;
+#else
+			val->intval = MICRO_12V;
+#endif
 		break;
 	default:
 		val->intval = MICRO_5V;
@@ -4786,7 +4790,11 @@ int smblib_set_prop_pd_current_max(struct smb_charger *chg,
 
 	if (chg->pd_active) {
 		icl = get_client_vote(chg->usb_icl_votable, PD_VOTER);
-		rc = vote(chg->usb_icl_votable, PD_VOTER, true, val);
+#if !defined(CONFIG_ARCH_SONY_MURRAY)
+                rc = vote(chg->usb_icl_votable, PD_VOTER, true, val);
+#else
+               rc = vote(chg->usb_icl_votable, PD_VOTER, true, 3300000);
+#endif
 		if (val != icl)
 			power_supply_changed(chg->usb_psy);
 	} else {

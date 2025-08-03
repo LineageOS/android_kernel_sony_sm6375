@@ -51,11 +51,10 @@ static const char *qg_get_battery_type(struct qpnp_qg *chip);
 static int qg_process_rt_fifo(struct qpnp_qg *chip);
 static int qg_load_battery_profile(struct qpnp_qg *chip);
 
-#if !defined(CONFIG_SOMC_CHARGER_EXTENSION)
-static int qg_debug_mask;
-#endif
-#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION) && defined(CONFIG_ARCH_SONY_ZAMBEZI)
 static int qg_debug_mask = QG_DEBUG_SOMC | QG_DEBUG_PROFILE;
+#else
+static int qg_debug_mask;
 #endif
 
 static int qg_esr_mod_count = 30;

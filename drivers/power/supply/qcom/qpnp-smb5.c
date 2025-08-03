@@ -1958,10 +1958,17 @@ static int smb5_configure_typec(struct smb_charger *chg)
 					rc);
 			return rc;
 		}
+#if !defined(CONFIG_ARCH_SONY_MURRAY)
 		rc = smblib_masked_write(chg, USBIN_LOAD_CFG_REG,
 				USBIN_IN_COLLAPSE_GF_SEL_MASK |
 				USBIN_AICL_STEP_TIMING_SEL_MASK,
 				11);
+#else
+		rc = smblib_masked_write(chg, USBIN_LOAD_CFG_REG,
+				USBIN_IN_COLLAPSE_GF_SEL_MASK |
+				USBIN_AICL_STEP_TIMING_SEL_MASK,
+				0);
+#endif
 		if (rc < 0) {
 			dev_err(chg->dev,
 				"Couldn't set USBIN_LOAD_CFG_REG rc=%d\n", rc);
