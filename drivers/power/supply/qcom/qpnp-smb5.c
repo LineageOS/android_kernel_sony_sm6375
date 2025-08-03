@@ -233,11 +233,10 @@ struct smb5 {
 	struct iio_chan_spec	*iio_chan_ids;
 };
 
-#if !defined(CONFIG_SOMC_CHARGER_EXTENSION)
-static int __debug_mask = 0xff;
-#endif
-#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION) && defined(CONFIG_ARCH_SONY_ZAMBEZI)
 static int __debug_mask = PR_SOMC;
+#else
+static int __debug_mask = 0xff;
 #endif
 
 static ssize_t pd_disabled_show(struct device *dev, struct device_attribute
@@ -1958,10 +1957,17 @@ static int smb5_configure_typec(struct smb_charger *chg)
 					rc);
 			return rc;
 		}
+#if defined(CONFIG_ARCH_SONY_ZAMBEZI)
 		rc = smblib_masked_write(chg, USBIN_LOAD_CFG_REG,
 				USBIN_IN_COLLAPSE_GF_SEL_MASK |
 				USBIN_AICL_STEP_TIMING_SEL_MASK,
 				11);
+#else
+		rc = smblib_masked_write(chg, USBIN_LOAD_CFG_REG,
+				USBIN_IN_COLLAPSE_GF_SEL_MASK |
+				USBIN_AICL_STEP_TIMING_SEL_MASK,
+				0);
+#endif
 		if (rc < 0) {
 			dev_err(chg->dev,
 				"Couldn't set USBIN_LOAD_CFG_REG rc=%d\n", rc);
