@@ -769,6 +769,7 @@ struct smb_charger {
 	bool			charger_type_determined;
 	struct delayed_work	aicl_update_work;
 	ktime_t			aicl_update_time;
+	struct class	bcext_class;
 	/* usb removal work */
 	struct delayed_work	usb_remove_work;
 	struct input_dev	*unplug_key;
