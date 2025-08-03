@@ -233,11 +233,12 @@ struct smb5 {
 	struct iio_chan_spec	*iio_chan_ids;
 };
 
-#if !defined(CONFIG_SOMC_CHARGER_EXTENSION)
-static int __debug_mask = 0xff;
-#endif
-#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION) && defined(CONFIG_ARCH_SONY_ZAMBEZI)
 static int __debug_mask = PR_SOMC;
+#elif !defined(CONFIG_SOMC_CHARGER_EXTENSION) && defined(CONFIG_ARCH_SONY_ZAMBEZI)
+static int __debug_mask = 0xff;
+#else
+static int __debug_mask;
 #endif
 
 static ssize_t pd_disabled_show(struct device *dev, struct device_attribute
@@ -1787,7 +1788,7 @@ static int smb5_configure_typec(struct smb_charger *chg)
 {
 	int rc, val;
 	u8 value = 0;
-#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION) && defined(CONFIG_ARCH_SONY_ZAMBEZI)
 	u8 apsd_stat, apst_result;
 #endif
 
@@ -1804,7 +1805,7 @@ static int smb5_configure_typec(struct smb_charger *chg)
 	 */
 
 	if (value & TYPEC_LEGACY_CABLE_STATUS_BIT) {
-#if !defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#if !defined(CONFIG_SOMC_CHARGER_EXTENSION) || defined(CONFIG_ARCH_SONY_MURRAY)
 		val = QTI_POWER_SUPPLY_TYPEC_PR_NONE;
 		rc = smblib_set_prop_typec_power_role(chg, val);
 		if (rc < 0) {
@@ -1822,7 +1823,7 @@ static int smb5_configure_typec(struct smb_charger *chg)
 			return rc;
 		}
 #endif
-#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION) && defined(CONFIG_ARCH_SONY_ZAMBEZI)
 		rc = smblib_read(chg, APSD_STATUS_REG, &apsd_stat);
 		if (rc < 0) {
 			dev_err(chg->dev,
@@ -1887,11 +1888,11 @@ static int smb5_configure_typec(struct smb_charger *chg)
 	}
 
 	if (!(value & SNK_DAM_MASK)) {
-#if !defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#if !defined(CONFIG_SOMC_CHARGER_EXTENSION) || defined(CONFIG_ARCH_SONY_MURRAY)
 		rc = smblib_masked_write(chg, TYPE_C_CFG_REG,
 					BC1P2_START_ON_CC_BIT, 0);
 #endif
-#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION) && defined(CONFIG_ARCH_SONY_ZAMBEZI)
 		rc = smblib_masked_write(chg, TYPE_C_CFG_REG,
 					BC1P2_START_ON_CC_BIT, BC1P2_START_ON_CC_BIT);
 #endif
@@ -1958,17 +1959,24 @@ static int smb5_configure_typec(struct smb_charger *chg)
 					rc);
 			return rc;
 		}
+#if defined(CONFIG_ARCH_SONY_ZAMBEZI)
 		rc = smblib_masked_write(chg, USBIN_LOAD_CFG_REG,
 				USBIN_IN_COLLAPSE_GF_SEL_MASK |
 				USBIN_AICL_STEP_TIMING_SEL_MASK,
 				11);
+#else
+		rc = smblib_masked_write(chg, USBIN_LOAD_CFG_REG,
+				USBIN_IN_COLLAPSE_GF_SEL_MASK |
+				USBIN_AICL_STEP_TIMING_SEL_MASK,
+				0);
+#endif
 		if (rc < 0) {
 			dev_err(chg->dev,
 				"Couldn't set USBIN_LOAD_CFG_REG rc=%d\n", rc);
 			return rc;
 		}
 	}
-#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION) && defined(CONFIG_ARCH_SONY_ZAMBEZI)
 	rc = smblib_masked_write(chg, USBIN_LOAD_CFG_REG,
 		USBIN_IN_COLLAPSE_GF_SEL_MASK | USBIN_AICL_STEP_TIMING_SEL_MASK,
 		USBIN_AICL_STEP_TIMING_SEL_30MS);
@@ -2429,7 +2437,7 @@ static int smb5_init_hw(struct smb5 *chip)
 
 	smblib_get_charge_param(chg, &chg->param.usb_icl,
 				&chg->default_icl_ua);
-#if !defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#if !defined(CONFIG_SOMC_CHARGER_EXTENSION) || defined(CONFIG_ARCH_SONY_MURRAY)
 	smblib_get_charge_param(chg, &chg->param.aicl_5v_threshold,
 				&chg->default_aicl_5v_threshold_mv);
 	chg->aicl_5v_threshold_mv = chg->default_aicl_5v_threshold_mv;
@@ -2525,7 +2533,7 @@ static int smb5_init_hw(struct smb5 *chip)
 	vote(chg->usb_icl_votable, HW_LIMIT_VOTER,
 			chg->hw_max_icl_ua > 0, chg->hw_max_icl_ua);
 
-#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION) && defined(CONFIG_ARCH_SONY_ZAMBEZI)
 	vote(chg->usb_icl_votable, SW_ICL_MAX_VOTER, true, 0);
 	vote(chg->usb_icl_votable, SOMC_PRODUCT_VOTER,
 					chip->dt.somc_product_max_icl_ua > 0,
@@ -2686,7 +2694,7 @@ static int smb5_init_hw(struct smb5 *chip)
 		dev_err(chg->dev, "Couldn't set hw jeita rc=%d\n", rc);
 		return rc;
 	}
-#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION) && defined(CONFIG_ARCH_SONY_ZAMBEZI)
 	rc = smblib_masked_write(chg, JEITA_EN_CFG_REG, JEITA_EN_HARDLIMIT,
 							JEITA_EN_HARDLIMIT);
 	if (rc < 0) {
@@ -4211,7 +4219,7 @@ static void smb5_shutdown(struct platform_device *pdev)
 {
 	struct smb5 *chip = platform_get_drvdata(pdev);
 	struct smb_charger *chg = &chip->chg;
-#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION) && defined(CONFIG_ARCH_SONY_ZAMBEZI)
 	int rc;
 #endif
 
@@ -4229,7 +4237,7 @@ static void smb5_shutdown(struct platform_device *pdev)
 	/* force enable and rerun APSD */
 	smblib_apsd_enable(chg, true);
 	smblib_hvdcp_exit_config(chg);
-#if defined(CONFIG_SOMC_CHARGER_EXTENSION)
+#if defined(CONFIG_SOMC_CHARGER_EXTENSION) && defined(CONFIG_ARCH_SONY_ZAMBEZI)
 	if ((chg->pd_active == QTI_POWER_SUPPLY_PD_PPS_ACTIVE) ||
 		(chg->pd_active == QTI_POWER_SUPPLY_PD_ACTIVE)) {
 		rc = smblib_masked_write(chg, USBIN_ADAPTER_ALLOW_CFG_REG,
