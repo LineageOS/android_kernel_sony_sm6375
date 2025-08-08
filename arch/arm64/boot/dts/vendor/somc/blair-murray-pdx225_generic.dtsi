@@ -1,5 +1,15 @@
 #include "blair-murray-pdx225_common.dtsi"
 
+&qupv3_se10_i2c {
+	awinic_haptic@58 {
+		status = "disabled";
+	};
+
+	ti_haptic@5A {
+		status = "disabled";
+	};
+};
+
 &soc {
 	last_logs@ffbc0000 {
 		compatible = "rd_last_logs";
