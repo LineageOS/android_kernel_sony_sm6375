@@ -53,11 +53,7 @@
 
 
 &sdhc_1 {
-#if defined(CONFIG_ARCH_SONY_ZAMBEZI)
-	status = "disabled";
-#else
 	status = "ok";
-#endif
 
 	pinctrl-names = "default", "sleep";
 	pinctrl-0 = <&sdc1_on>;
