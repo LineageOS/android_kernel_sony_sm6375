@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "102e8c30_6eef450a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10067
+      },
+      "writtenOn": "2026-01-29T08:49:54Z",
+      "side": 1,
+      "message": "in case common lights hal starts to support trigger.",
+      "revId": "bcd16b5b67d64452ffd4a6dc14c60038c54bf458",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71"
+    }
+  ]
+}
