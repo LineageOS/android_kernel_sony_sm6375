@@ -218,8 +218,7 @@ static int sm5038_i2c_probe(struct i2c_client *i2c, const struct i2c_device_id *
 	if (!i2c_check_functionality(i2c->adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
 		pr_err("%s:%s i2c functionality check error\n",
 				SM5038_DEV_NAME, __func__);		
-		ret = -EIO;
-		goto err;
+		return -EIO;
 	}
 
 	sm5038 = kzalloc(sizeof(struct sm5038_dev), GFP_KERNEL);
